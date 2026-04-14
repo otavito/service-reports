@@ -573,7 +573,6 @@
         </div>
     </main>
 
-    <script src="config.js"></script>
     <script src="payload.js"></script>
     <script>
         // ── Tenant data ───────────────────────────────────────────────────────────
@@ -772,8 +771,7 @@
                 submitButton.disabled = true;
                 submitButton.textContent = 'Submitting...';
 
-                const FUNCTION_URL = window.FUNCTION_URL;
-
+                const FUNCTION_URL = 'https://partsorder-api-hne6dzfudubdfvg0.westus3-01.azurewebsites.net/api/service-report-post';
                 const response = await fetch(FUNCTION_URL, {
                     method: 'POST',
                     headers: {
