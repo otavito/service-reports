@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Service Report</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --color-bg: #f4f6f9;
+      --color-surface: #ffffff;
+      --color-border: #d1d5db;
+      --color-border-focus: #3b82f6;
+      --color-text: #1f2937;
+      --color-text-muted: #6b7280;
+      --color-primary: #1d4ed8;
+      --color-primary-hover: #1e40af;
+      --color-accent: #eff6ff;
+      --color-remove: #ef4444;
+      --radius: 8px;
+      --shadow: 0 1px 3px rgba(0,0,0,.10), 0 1px 2px rgba(0,0,0,.06);
+      --shadow-md: 0 4px 6px rgba(0,0,0,.07), 0 2px 4px rgba(0,0,0,.06);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--color-bg);
+      color: var(--color-text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ──────────────────────────────────────── */
+    header {
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+      box-shadow: var(--color-shadow);
+      padding: 0 clamp(1rem, 5vw, 3rem);
+    }
+    .header-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 0;
+    }
+    .header-inner img {
+      height: clamp(36px, 6vw, 52px);
+      width: auto;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+    .header-inner h1 {
+      font-size: clamp(1.1rem, 3vw, 1.6rem);
+      font-weight: 700;
+      color: var(--color-primary);
+      letter-spacing: -0.01em;
+    }
+
+    /* ── Layout ──────────────────────────────────────── */
+    main {
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 0 clamp(1rem, 4vw, 2rem);
+    }
+
+    .card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: clamp(1.25rem, 4vw, 2rem);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr));
+      gap: 1.25rem 1.5rem;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: .35rem;
+    }
+    .field.full-width { grid-column: 1 / -1; }
+
+    label {
+      font-size: .8rem;
+      font-weight: 600;
+      letter-spacing: .03em;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+    }
+
+    input[type="text"],
+    input[type="date"],
+    select,
+    textarea {
+      width: 100%;
+      padding: .55rem .75rem;
+      font-size: .95rem;
+      font-family: inherit;
+      color: var(--color-text);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    input[type="text"]:focus,
+    input[type="date"]:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--color-border-focus);
+      box-shadow: 0 0 0 3px rgba(59,130,246,.15);
+    }
+    input[type="text"]:disabled,
+    select:disabled {
+      background: #f9fafb;
+      color: var(--color-text-muted);
+      cursor: not-allowed;
+    }
+    textarea { resize: vertical; min-height: 90px; }
+
+    /* ── Searchable dropdown ─────────────────────────── */
+    .search-select { position: relative; }
+
+    .search-select-input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .search-select-input-wrap input[type="text"] {
+      padding-right: 2.2rem;
+    }
+    .search-select-input-wrap .ss-arrow {
+      position: absolute;
+      right: .7rem;
+      pointer-events: none;
+      color: var(--color-text-muted);
+      display: flex;
+      align-items: center;
+    }
+    .search-select-input-wrap .ss-clear {
+      position: absolute;
+      right: 2rem;
+      cursor: pointer;
+      color: var(--color-text-muted);
+      font-size: 1rem;
+      line-height: 1;
+      background: none;
+      border: none;
+      padding: 2px;
+      display: none;
+      align-items: center;
+    }
+    .search-select-input-wrap .ss-clear:hover { color: var(--color-remove); }
+
+    .ss-dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-md);
+      max-height: 220px;
+      overflow-y: auto;
+      z-index: 100;
+      display: none;
+    }
+    .ss-dropdown.open { display: block; }
+
+    .ss-option {
+      padding: .5rem .75rem;
+      cursor: pointer;
+      font-size: .92rem;
+      transition: background .1s;
+    }
+    .ss-option:hover, .ss-option.highlighted { background: var(--color-accent); color: var(--color-primary); }
+    .ss-option.selected { font-weight: 600; color: var(--color-primary); }
+    .ss-no-results {
+      padding: .5rem .75rem;
+      font-size: .88rem;
+      color: var(--color-text-muted);
+      font-style: italic;
+    }
+
+    /* ── Divider ─────────────────────────────────────── */
+    .section-divider {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      margin-top: .25rem;
+    }
+    .section-divider span {
+      font-size: .78rem;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+      white-space: nowrap;
+    }
+    .section-divider::before,
+    .section-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--color-border);
+    }
+
+    /* ── Dynamic row tables ──────────────────────────── */
+    .dyn-wrapper { grid-column: 1 / -1; display: flex; flex-direction: column; gap: .75rem; }
+
+    .dyn-header {
+      display: grid;
+      gap: .5rem;
+      padding: 0 .25rem;
+    }
+    .dyn-header span {
+      font-size: .78rem;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+    }
+
+    /* Software update: Program | FROM | TO | Building/PC | remove */
+    .dyn-header.sw-cols { grid-template-columns: 1fr 1fr 1fr 1fr 40px; }
+    .sw-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr 40px;
+      gap: .5rem;
+      align-items: center;
+    }
+
+    /* Hardware: Item | Qty | remove */
+    .dyn-header.hw-cols { grid-template-columns: 1fr 130px 40px; }
+    .hw-row {
+      display: grid;
+      grid-template-columns: 1fr 130px 40px;
+      gap: .5rem;
+      align-items: center;
+    }
+
+    .sw-row input, .hw-row input { margin: 0; }
+
+    .btn-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: background .15s, color .15s;
+      flex-shrink: 0;
+    }
+    .btn-remove { background: #fee2e2; color: var(--color-remove); }
+    .btn-remove:hover { background: var(--color-remove); color: #fff; }
+
+    .btn-add-quote {
+      align-self: flex-start;
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      padding: .45rem .9rem;
+      font-size: .85rem;
+      font-weight: 600;
+      color: var(--color-primary);
+      background: var(--color-accent);
+      border: 1px dashed var(--color-border-focus);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .btn-add-quote:hover { background: #dbeafe; }
+
+    /* ── Submit button ───────────────────────────────── */
+    .form-actions {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: flex-end;
+      margin-top: .5rem;
+    }
+    .btn-submit {
+      padding: .65rem 2rem;
+      font-size: 1rem;
+      font-weight: 600;
+      font-family: inherit;
+      color: #fff;
+      background: var(--color-primary);
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: background .15s, box-shadow .15s;
+      box-shadow: var(--shadow);
+    }
+    .btn-submit:hover { background: var(--color-primary-hover); box-shadow: var(--shadow-md); }
+    .btn-submit:active { transform: translateY(1px); }
+
+    /* ── Responsive tweaks ───────────────────────────── */
+    @media (max-width: 700px) {
+      .dyn-header.sw-cols, .sw-row {
+        grid-template-columns: 1fr 1fr 36px;
+        grid-template-rows: auto auto;
+      }
+      .sw-row .sw-program  { grid-column: 1 / 3; }
+      .sw-row .btn-remove  { grid-column: 3; grid-row: 1; }
+      .sw-row .sw-from,
+      .sw-row .sw-to       { grid-column: span 1; }
+      .sw-row .sw-building { grid-column: 1 / 3; }
+    }
+    @media (max-width: 500px) {
+      .dyn-header.hw-cols, .hw-row {
+        grid-template-columns: 1fr 90px 36px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <img src="logo.png" alt="Logo" />
+      <h1>Service Report</h1>
+    </div>
+  </header>
+
+  <main>
+    <div class="card">
+      <form id="serviceForm" novalidate>
+        <div class="form-grid">
+
+          <!-- ── Visit Details ────────────────────────── -->
+          <div class="section-divider"><span>Visit Details</span></div>
+
+          <!-- Service Technician -->
+          <div class="field">
+            <label for="technician">Service Technician</label>
+            <select id="technician" name="technician" required>
+              <option value="" disabled selected>Select technician…</option>
+              <option>Bruno Manoel</option>
+              <option>Daniel Genson</option>
+              <option>Dennis Bruns</option>
+              <option>John Thomes</option>
+              <option>Kelly Ulrich</option>
+              <option>Keith Lafave</option>
+              <option>Matt Adamski</option>
+            </select>
+          </div>
+
+          <!-- Tenant -->
+          <div class="field">
+            <label>Tenant</label>
+            <div class="search-select" id="tenantSelect">
+              <div class="search-select-input-wrap">
+                <input type="text" id="tenantInput" placeholder="Search tenant…" autocomplete="off" />
+                <button type="button" class="ss-clear" id="tenantClear" aria-label="Clear">&#x2715;</button>
+                <span class="ss-arrow">
+                  <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
+                </span>
+              </div>
+              <div class="ss-dropdown" id="tenantDropdown"></div>
+              <input type="hidden" id="tenantValue" name="tenant" />
+            </div>
+          </div>
+
+          <!-- Site -->
+          <div class="field">
+            <label>Site</label>
+            <div class="search-select" id="siteSelect">
+              <div class="search-select-input-wrap">
+                <input type="text" id="siteInput" placeholder="Select tenant first…" autocomplete="off" disabled />
+                <button type="button" class="ss-clear" id="siteClear" aria-label="Clear" style="display:none">&#x2715;</button>
+                <span class="ss-arrow">
+                  <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
+                </span>
+              </div>
+              <div class="ss-dropdown" id="siteDropdown"></div>
+              <input type="hidden" id="siteValue" name="site" />
+            </div>
+          </div>
+
+          <!-- Buildings Affected -->
+          <div class="field">
+            <label for="buildingsAffected">Buildings Affected</label>
+            <input type="text" id="buildingsAffected" name="buildingsAffected" placeholder="Processing, House 1, …" />
+          </div>
+
+          <!-- Date -->
+          <div class="field">
+            <label for="visitDate">Date</label>
+            <input type="date" id="visitDate" name="visitDate" required />
+          </div>
+
+          <!-- ── Service Details ──────────────────────── -->
+          <div class="section-divider"><span>Service Details</span></div>
+
+          <!-- Visit Purpose -->
+          <div class="field full-width">
+            <label for="visitPurpose">Visit Purpose</label>
+            <textarea id="visitPurpose" name="visitPurpose" placeholder="Describe the purpose of this visit…"></textarea>
+          </div>
+
+          <!-- Results -->
+          <div class="field full-width">
+            <label for="results">Results</label>
+            <textarea id="results" name="results" placeholder="Describe the results and findings…"></textarea>
+          </div>
+
+          <!-- ── Software Update ─────────────────────── -->
+          <div class="section-divider"><span>Software Update</span></div>
+
+          <div class="dyn-wrapper">
+            <div class="dyn-header sw-cols">
+              <span>Program</span>
+              <span>From</span>
+              <span>To</span>
+              <span>Buildings / PCs</span>
+              <span></span>
+            </div>
+            <div id="softwareList"></div>
+            <button type="button" class="btn-add-quote" id="addSoftware">
+              <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z"/></svg>
+              Add update
+            </button>
+          </div>
+
+          <!-- ── Hardware ────────────────────────────── -->
+          <div class="section-divider"><span>Hardware update</span></div>
+
+          <div class="dyn-wrapper">
+            <div class="dyn-header hw-cols">
+              <span>Item</span>
+              <span>Quantity</span>
+              <span></span>
+            </div>
+            <div id="hardwareList"></div>
+            <button type="button" class="btn-add-quote" id="addHardware">
+              <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z"/></svg>
+              Add item
+            </button>
+          </div>
+
+          <!-- Submit -->
+          <div class="form-actions">
+            <button type="submit" class="btn-submit">Submit Report</button>
+          </div>
+
+        </div><!-- /form-grid -->
+      </form>
+    </div>
+  </main>
+
+  <script src="payload.js"></script>
+  <script>
+    // ── Tenant data ───────────────────────────────────────────────────────────
+    const TENANTS_DATA = {
+      "ROSE ACRES": ["COUNTY LINE","DESERT VALLEY","GERMANTOWN","GUTHRIE CENTER","JASPER","JENN ACRES","JOHNSON COUNTY","LINCOLN COUNTY","LONE CACTUS","NEWTON COUNTY","OCONEE","PULASKI","STUART","VILLA ROSE","WHITE COUNTY","WINTERSET"],
+      "SUNRISE": ["ARCHER","FARM 1","FARM 2","FARM 3","FARM 4","FARM 5","FEEDMILL","PULLET 1","PULLET 2","PULLET 3","PULLET 4","PULLET 5","PULLET 7","SHELDON"],
+      "GEMPERLE": ["AUGUST RANCH","AZTEC (VALLEY FRESH)","BARNHART","BRADBURY","CHANNING","GFF HUGHSON","GRIFFITH PULLET","HARDING","MANNING","NATIONAL-LIND LAYERS","NATIONAL-LIND PULLETS","PLANKINTON SD","SCHENDEL RANCH","SKYLANE"],
+      "CAL-MAINE": ["CHASE LAYERS","CHASE PULLETS","GUTHRIE LAYER 1","GUTHRIE LAYER 2","GUTHRIE PULLETS","OKEECHOBEE PULLET","WHARTON PULLET"],
+      "OPAL FOODS": ["HATHAWAY","HUDSON LAYER","HUDSON PULLET","IOWA FALLS","LITCHFIELD","SCHOOL"],
+      "DAYBREAK": ["MAD RIVER","MARTIN","NEW DAY CREEKWOOD LAYERS","NEW DAY CREEKWOOD PULLETS","NEW DAY FARM 3","NEW DAY PULLETS","SCHIPPER FARM"],
+      "TRILLIUM": ["BREEDER LAYERS","BREEDER PULLET","CAGE FREE LAYERS","CAGE FREE PULLETS","LAYER SITE 1 NEW","LAYER SITE 3","LAYER SITE 4 NEW","PULLET SITE 1","PULLET SITE 2","PULLET SITE 3","PULLET SITE 4"],
+      "CLR EGGS": ["CLR"],
+      "NELSON": ["DIAMOND HILL 1&2","DIAMOND HILL 3","LEATHER HILL","NOT BARRY 3&4","NOT BARRY 5&6","PRAIRIE VIEW","RIVER ROOST"],
+      "REMBRANDT": ["FLOOR BIRDS","LAYERS","LITTLE SIOUX","PULLETS","THOMPSON"],
+      "GIROUX": ["LAYERS","PULLETS"],
+      "FORSMAN FARMS": ["HOWARD LAKE","STOCKHOLM LAYERS","STOCKHOLM PULLETS","VILLISCA"],
+      "WILLAMETTE": ["CANBY","MOSES LAKE","SATRUM"],
+      "MICHAEL FOOD": ["BLOOMFIELD","GARDEN GROWERS","HEARTLAND"]
+    };
+
+    const TENANT_NAMES = Object.keys(TENANTS_DATA);
+
+    // ── Generic searchable-select factory ────────────────────────────────────
+    function createSearchSelect({ inputEl, clearBtn, dropdownEl, hiddenEl, options, onSelect, placeholder }) {
+      let highlighted = -1;
+      let currentOptions = [...options];
+
+      function renderOptions(list) {
+        dropdownEl.innerHTML = '';
+        highlighted = -1;
+        if (!list.length) {
+          dropdownEl.innerHTML = '<div class="ss-no-results">No results found</div>';
+          return;
+        }
+        list.forEach((opt, i) => {
+          const div = document.createElement('div');
+          div.className = 'ss-option' + (opt === hiddenEl.value ? ' selected' : '');
+          div.textContent = opt;
+          div.addEventListener('mousedown', e => { e.preventDefault(); selectOption(opt); });
+          dropdownEl.appendChild(div);
+        });
+      }
+
+      function openDropdown() {
+        currentOptions = options.filter(o => o.toLowerCase().includes(inputEl.value.toLowerCase()));
+        renderOptions(currentOptions);
+        dropdownEl.classList.add('open');
+      }
+
+      function closeDropdown() { dropdownEl.classList.remove('open'); highlighted = -1; }
+
+      function selectOption(value) {
+        hiddenEl.value = value;
+        inputEl.value = value;
+        clearBtn.style.display = 'flex';
+        closeDropdown();
+        if (onSelect) onSelect(value);
+      }
+
+      function clearSelection() {
+        hiddenEl.value = '';
+        inputEl.value = '';
+        clearBtn.style.display = 'none';
+        if (onSelect) onSelect('');
+      }
+
+      inputEl.addEventListener('focus', openDropdown);
+      inputEl.addEventListener('input', () => {
+        currentOptions = options.filter(o => o.toLowerCase().includes(inputEl.value.toLowerCase()));
+        renderOptions(currentOptions);
+        dropdownEl.classList.add('open');
+        if (!inputEl.value) clearBtn.style.display = 'none';
+      });
+      inputEl.addEventListener('blur', () => setTimeout(closeDropdown, 150));
+      inputEl.addEventListener('keydown', e => {
+        const items = dropdownEl.querySelectorAll('.ss-option');
+        if (!items.length) return;
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          highlighted = Math.min(highlighted + 1, items.length - 1);
+          items.forEach((el, i) => el.classList.toggle('highlighted', i === highlighted));
+          items[highlighted]?.scrollIntoView({ block: 'nearest' });
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          highlighted = Math.max(highlighted - 1, 0);
+          items.forEach((el, i) => el.classList.toggle('highlighted', i === highlighted));
+          items[highlighted]?.scrollIntoView({ block: 'nearest' });
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          if (highlighted >= 0) selectOption(currentOptions[highlighted]);
+        } else if (e.key === 'Escape') {
+          closeDropdown();
+        }
+      });
+      clearBtn.addEventListener('click', clearSelection);
+
+      return { setOptions(newOptions) { options = newOptions; }, clear: clearSelection };
+    }
+
+    // ── Init Tenant select ────────────────────────────────────────────────────
+    const tenantCtrl = createSearchSelect({
+      inputEl: document.getElementById('tenantInput'),
+      clearBtn: document.getElementById('tenantClear'),
+      dropdownEl: document.getElementById('tenantDropdown'),
+      hiddenEl: document.getElementById('tenantValue'),
+      options: TENANT_NAMES,
+      onSelect(value) {
+        // Reset site
+        siteCtrl.clear();
+        const siteInput = document.getElementById('siteInput');
+        const sites = value ? TENANTS_DATA[value] || [] : [];
+        siteCtrl.setOptions(sites);
+        siteInput.disabled = !value;
+        siteInput.placeholder = value ? 'Search site…' : 'Select tenant first…';
+      }
+    });
+
+    // ── Init Site select ──────────────────────────────────────────────────────
+    const siteCtrl = createSearchSelect({
+      inputEl: document.getElementById('siteInput'),
+      clearBtn: document.getElementById('siteClear'),
+      dropdownEl: document.getElementById('siteDropdown'),
+      hiddenEl: document.getElementById('siteValue'),
+      options: []
+    });
+
+    // ── Remove icon SVG helper ────────────────────────────────────────────────
+    const TRASH_SVG = `<svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clip-rule="evenodd"/></svg>`;
+
+    function makeRemoveBtn(row) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'btn-icon btn-remove';
+      btn.setAttribute('aria-label', 'Remove row');
+      btn.innerHTML = TRASH_SVG;
+      btn.addEventListener('click', () => row.remove());
+      return btn;
+    }
+
+    // ── Software Update rows ──────────────────────────────────────────────────
+    let swIndex = 0;
+    const softwareList = document.getElementById('softwareList');
+
+    function addSoftwareRow() {
+      const idx = swIndex++;
+      const row = document.createElement('div');
+      row.className = 'sw-row';
+      const program = document.createElement('input');
+      program.type = 'text'; program.name = `sw_program_${idx}`; program.placeholder = 'Program name…';
+      program.className = 'sw-program';
+      const from = document.createElement('input');
+      from.type = 'text'; from.name = `sw_from_${idx}`; from.placeholder = 'Version / build…';
+      from.className = 'sw-from';
+      const to = document.createElement('input');
+      to.type = 'text'; to.name = `sw_to_${idx}`; to.placeholder = 'Version / build…';
+      to.className = 'sw-to';
+      const building = document.createElement('input');
+      building.type = 'text'; building.name = `sw_building_${idx}`; building.placeholder = 'Building / PC…';
+      building.className = 'sw-building';
+      row.append(program, from, to, building, makeRemoveBtn(row));
+      softwareList.appendChild(row);
+    }
+
+    document.getElementById('addSoftware').addEventListener('click', addSoftwareRow);
+    addSoftwareRow();
+
+    // ── Hardware rows ─────────────────────────────────────────────────────────
+    let hwIndex = 0;
+    const hardwareList = document.getElementById('hardwareList');
+
+    function addHardwareRow() {
+      const idx = hwIndex++;
+      const row = document.createElement('div');
+      row.className = 'hw-row';
+      const item = document.createElement('input');
+      item.type = 'text'; item.name = `hw_item_${idx}`; item.placeholder = 'Item description…';
+      const qty = document.createElement('input');
+      qty.type = 'text'; qty.name = `hw_qty_${idx}`; qty.placeholder = 'Qty / Unit…';
+      row.append(item, qty, makeRemoveBtn(row));
+      hardwareList.appendChild(row);
+    }
+
+    document.getElementById('addHardware').addEventListener('click', addHardwareRow);
+    addHardwareRow();
+
+    // ── Form submit ───────────────────────────────────────────────────────────
+    document.getElementById('serviceForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const payload = buildPayload(this);
+      console.log('Service Report Payload:', JSON.stringify(payload, null, 2));
+      // TODO: replace the block below with your actual API call, e.g.:
+      // fetch('/api/service-report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      alert('Report submitted successfully!');
+    });
+  </script>
+</body>
+</html>
