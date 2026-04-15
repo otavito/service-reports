@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Service Reports</title>
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --color-bg: #f4f6f9;
+      --color-surface: #ffffff;
+      --color-border: #d1d5db;
+      --color-border-focus: #3b82f6;
+      --color-text: #1f2937;
+      --color-text-muted: #6b7280;
+      --color-primary: #1d4ed8;
+      --color-primary-hover: #1e40af;
+      --color-accent: #eff6ff;
+      --radius: 8px;
+      --shadow: 0 1px 3px rgba(0, 0, 0, 0.10), 0 1px 2px rgba(0, 0, 0, 0.06);
+      --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 18px 40px rgba(15, 23, 42, 0.18);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--color-bg);
+      color: var(--color-text);
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+      box-shadow: var(--shadow);
+      padding: 0 clamp(1rem, 5vw, 3rem);
+    }
+
+    .header-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 0;
+    }
+
+    .header-inner img {
+      height: clamp(36px, 6vw, 52px);
+      width: auto;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+
+    .header-inner h1 {
+      font-size: clamp(1.1rem, 3vw, 1.6rem);
+      font-weight: 700;
+      color: var(--color-primary);
+      letter-spacing: -0.01em;
+    }
+
+    main {
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 0 clamp(1rem, 4vw, 2rem);
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .card-shell {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: clamp(1.25rem, 4vw, 2rem);
+    }
+
+    .page-intro {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .eyebrow {
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+    }
+
+    .page-intro h2 {
+      font-size: clamp(1.4rem, 4vw, 2rem);
+      color: var(--color-text);
+      letter-spacing: -0.02em;
+    }
+
+    .page-intro p {
+      max-width: 60ch;
+      color: var(--color-text-muted);
+      line-height: 1.6;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .filter-group label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+    }
+
+    input {
+      width: 100%;
+      padding: 0.55rem 0.75rem;
+      font-size: 0.95rem;
+      font-family: inherit;
+      color: var(--color-text);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    input:focus {
+      border-color: var(--color-border-focus);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.1rem;
+      cursor: pointer;
+      transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .card:hover {
+      border-color: var(--color-border-focus);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-1px);
+    }
+
+    .card h3 {
+      margin-bottom: 0.9rem;
+      color: var(--color-text);
+      font-size: 1rem;
+    }
+
+    .card p {
+      margin: 0.4rem 0;
+      font-size: 0.92rem;
+      color: var(--color-text);
+    }
+
+    .card strong {
+      color: var(--color-text-muted);
+    }
+
+    .empty {
+      color: var(--color-text-muted);
+      font-style: italic;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(17, 24, 39, 0.5);
+      backdrop-filter: blur(2px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      z-index: 200;
+    }
+
+    .modal {
+      width: min(100%, 820px);
+      max-height: 90vh;
+      overflow: auto;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 14px;
+      padding: clamp(1.25rem, 4vw, 2rem);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .modal h2 {
+      margin-bottom: 1rem;
+      color: var(--color-primary);
+    }
+
+    .section {
+      margin-top: 1.25rem;
+    }
+
+    .section h3 {
+      margin-bottom: 0.75rem;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--color-surface);
+    }
+
+    .info-grid div {
+      padding: 0.8rem 0.9rem;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .info-grid div:nth-last-child(-n + 2) {
+      border-bottom: none;
+    }
+
+    .label {
+      background: #f9fafb;
+      font-weight: 600;
+      color: var(--color-text-muted);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--color-border);
+      padding: 0.8rem 0.9rem;
+      text-align: left;
+      font-size: 0.92rem;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    th {
+      background: var(--color-accent);
+      color: var(--color-primary);
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .close-btn {
+      margin-top: 1.25rem;
+      padding: 0.65rem 1.25rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      font-family: inherit;
+      color: #fff;
+      background: var(--color-primary);
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: background 0.15s, box-shadow 0.15s;
+      box-shadow: var(--shadow);
+    }
+
+    .close-btn:hover {
+      background: var(--color-primary-hover);
+      box-shadow: var(--shadow-md);
+    }
+
+    @media (max-width: 640px) {
+      .info-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .info-grid div {
+        border-bottom: 1px solid var(--color-border);
+      }
+
+      .info-grid div:last-child {
+        border-bottom: none;
+      }
+
+      .modal-backdrop {
+        padding: 0.75rem;
+      }
+
+      .modal {
+        max-height: 94vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <img src="logo.png" alt="Logo" />
+      <h1>Service Report</h1>
+    </div>
+  </header>
+
+  <main>
+    <section class="card-shell page-intro">
+      <span class="eyebrow">History</span>
+      <h2>Submitted service reports</h2>
+      <p>Filter reports by technician or tenant and open a card to inspect the full service details recorded in the system.</p>
+    </section>
+
+    <section class="card-shell">
+      <div class="filters">
+        <div class="filter-group">
+          <label for="technicianSearch">Technician</label>
+          <input id="technicianSearch" list="technicianList" placeholder="Search technician" />
+          <datalist id="technicianList"></datalist>
+        </div>
+
+        <div class="filter-group">
+          <label for="tenantSearch">Tenant</label>
+          <input id="tenantSearch" list="tenantList" placeholder="Search tenant" />
+          <datalist id="tenantList"></datalist>
+        </div>
+      </div>
+    </section>
+
+    <section id="cards" class="cards"></section>
+  </main>
+
+  <div id="modalBackdrop" class="modal-backdrop">
+    <div class="modal">
+      <div id="modalContent"></div>
+      <button class="close-btn" id="closeModal">Close</button>
+    </div>
+  </div>
+
+  <script src="reports.js"></script>
+</body>
+</html>
