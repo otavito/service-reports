@@ -1,29 +1,45 @@
 const API_URL = "https://partsorder-api-hne6dzfudubdfvg0.westus3-01.azurewebsites.net/api/service-report-list";
 
+const TECHNICIAN_OPTIONS = [
+  "Bruno Manoel",
+  "Daniel Genson",
+  "Dennis Bruns",
+  "John Thomes",
+  "Kelly Ulrich",
+  "Keith Lafave",
+  "Matt Adamski",
+  "Otavio Ladoruski"
+];
+
+const TENANT_OPTIONS = [
+  "ROSE ACRES",
+  "SUNRISE",
+  "GEMPERLE",
+  "CAL-MAINE",
+  "OPAL FOODS",
+  "DAYBREAK",
+  "TRILLIUM",
+  "CLR EGGS",
+  "NELSON",
+  "REMBRANDT",
+  "GIROUX",
+  "FORSMAN FARMS",
+  "WILLAMETTE",
+  "MICHAEL FOOD"
+];
+
 const cardsEl = document.getElementById("cards");
 const technicianSearchEl = document.getElementById("technicianSearch");
 const tenantSearchEl = document.getElementById("tenantSearch");
-const technicianListEl = document.getElementById("technicianList");
-const tenantListEl = document.getElementById("tenantList");
+const technicianDropdownEl = document.getElementById("technicianDropdown");
+const tenantDropdownEl = document.getElementById("tenantDropdown");
+const technicianClearEl = document.getElementById("technicianClear");
+const tenantClearEl = document.getElementById("tenantClear");
 const modalBackdropEl = document.getElementById("modalBackdrop");
 const modalContentEl = document.getElementById("modalContent");
 const closeModalEl = document.getElementById("closeModal");
 
 let allReports = [];
-
-function uniqueSorted(values) {
-  return [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b));
-}
-
-function renderFilterOptions(reports) {
-  technicianListEl.innerHTML = uniqueSorted(
-    reports.map(r => r.serviceTechnician)
-  ).map(v => `<option value="${escapeHtml(v)}"></option>`).join("");
-
-  tenantListEl.innerHTML = uniqueSorted(
-    reports.map(r => r.tenant)
-  ).map(v => `<option value="${escapeHtml(v)}"></option>`).join("");
-}
 
 function escapeHtml(value) {
   return String(value || "")
@@ -51,6 +67,110 @@ function filterReports() {
   });
 
   renderCards(filtered);
+}
+
+function createSearchSelect({ inputEl, dropdownEl, clearBtnEl, options, onInput }) {
+  let highlightedIndex = -1;
+  let visibleOptions = [...options];
+
+  function updateClearButton() {
+    clearBtnEl.style.display = inputEl.value.trim() ? "flex" : "none";
+  }
+
+  function closeDropdown() {
+    dropdownEl.classList.remove("open");
+    highlightedIndex = -1;
+  }
+
+  function applyValue(value) {
+    inputEl.value = value;
+    updateClearButton();
+    closeDropdown();
+    onInput(inputEl.value);
+  }
+
+  function renderOptions(list) {
+    dropdownEl.innerHTML = "";
+    highlightedIndex = -1;
+
+    if (!list.length) {
+      dropdownEl.innerHTML = '<div class="ss-no-results">No results found</div>';
+      return;
+    }
+
+    list.forEach((option) => {
+      const optionEl = document.createElement("div");
+      optionEl.className = "ss-option";
+      optionEl.textContent = option;
+      optionEl.addEventListener("mousedown", (event) => {
+        event.preventDefault();
+        applyValue(option);
+      });
+      dropdownEl.appendChild(optionEl);
+    });
+  }
+
+  function refreshOptions() {
+    const term = inputEl.value.trim().toLowerCase();
+    visibleOptions = options.filter((option) => option.toLowerCase().includes(term));
+    renderOptions(visibleOptions);
+    dropdownEl.classList.add("open");
+  }
+
+  inputEl.addEventListener("focus", refreshOptions);
+  inputEl.addEventListener("input", () => {
+    updateClearButton();
+    refreshOptions();
+    onInput(inputEl.value);
+  });
+
+  inputEl.addEventListener("keydown", (event) => {
+    const optionElements = dropdownEl.querySelectorAll(".ss-option");
+
+    if (event.key === "Escape") {
+      closeDropdown();
+      return;
+    }
+
+    if (!optionElements.length) {
+      return;
+    }
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      highlightedIndex = Math.min(highlightedIndex + 1, optionElements.length - 1);
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      highlightedIndex = Math.max(highlightedIndex - 1, 0);
+    } else if (event.key === "Enter") {
+      if (highlightedIndex >= 0) {
+        event.preventDefault();
+        applyValue(visibleOptions[highlightedIndex]);
+      }
+      return;
+    } else {
+      return;
+    }
+
+    optionElements.forEach((element, index) => {
+      element.classList.toggle("highlighted", index === highlightedIndex);
+    });
+    optionElements[highlightedIndex]?.scrollIntoView({ block: "nearest" });
+  });
+
+  inputEl.addEventListener("blur", () => {
+    window.setTimeout(closeDropdown, 150);
+  });
+
+  clearBtnEl.addEventListener("click", () => {
+    inputEl.value = "";
+    updateClearButton();
+    refreshOptions();
+    onInput("");
+    inputEl.focus();
+  });
+
+  updateClearButton();
 }
 
 function renderCards(reports) {
@@ -158,8 +278,21 @@ modalBackdropEl.addEventListener("click", (event) => {
   }
 });
 
-technicianSearchEl.addEventListener("input", filterReports);
-tenantSearchEl.addEventListener("input", filterReports);
+createSearchSelect({
+  inputEl: technicianSearchEl,
+  dropdownEl: technicianDropdownEl,
+  clearBtnEl: technicianClearEl,
+  options: TECHNICIAN_OPTIONS,
+  onInput: filterReports
+});
+
+createSearchSelect({
+  inputEl: tenantSearchEl,
+  dropdownEl: tenantDropdownEl,
+  clearBtnEl: tenantClearEl,
+  options: TENANT_OPTIONS,
+  onInput: filterReports
+});
 
 async function loadReports() {
   cardsEl.innerHTML = `<p class="empty">Loading reports...</p>`;
@@ -173,8 +306,7 @@ async function loadReports() {
     }
 
     allReports = data.reports || [];
-    renderFilterOptions(allReports);
-    renderCards(allReports);
+    filterReports();
   } catch (error) {
     console.error(error);
     cardsEl.innerHTML = `<p class="empty">Failed to load reports.</p>`;

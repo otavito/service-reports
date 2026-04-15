@@ -129,6 +129,16 @@
       color: var(--color-text-muted);
     }
 
+    .search-select {
+      position: relative;
+    }
+
+    .search-select-input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
     input {
       width: 100%;
       padding: 0.55rem 0.75rem;
@@ -145,6 +155,78 @@
     input:focus {
       border-color: var(--color-border-focus);
       box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+
+    .search-select-input-wrap input {
+      padding-right: 4.25rem;
+    }
+
+    .ss-clear {
+      position: absolute;
+      right: 2rem;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 1.5rem;
+      height: 1.5rem;
+      border: none;
+      background: transparent;
+      color: var(--color-text-muted);
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+    }
+
+    .ss-clear:hover {
+      color: var(--color-primary);
+    }
+
+    .ss-arrow {
+      position: absolute;
+      right: 0.75rem;
+      display: flex;
+      align-items: center;
+      color: var(--color-text-muted);
+      pointer-events: none;
+    }
+
+    .ss-dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      display: none;
+      max-height: 220px;
+      overflow-y: auto;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-md);
+      z-index: 50;
+    }
+
+    .ss-dropdown.open {
+      display: block;
+    }
+
+    .ss-option {
+      padding: 0.55rem 0.75rem;
+      font-size: 0.92rem;
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+
+    .ss-option:hover,
+    .ss-option.highlighted {
+      background: var(--color-accent);
+      color: var(--color-primary);
+    }
+
+    .ss-no-results {
+      padding: 0.55rem 0.75rem;
+      color: var(--color-text-muted);
+      font-size: 0.9rem;
+      font-style: italic;
     }
 
     .cards {
@@ -332,7 +414,7 @@
   <header>
     <div class="header-inner">
       <img src="logo.png" alt="Logo" />
-      <h1>Service Report</h1>
+      <h1>Service Reports</h1>
     </div>
   </header>
 
@@ -347,14 +429,34 @@
       <div class="filters">
         <div class="filter-group">
           <label for="technicianSearch">Technician</label>
-          <input id="technicianSearch" list="technicianList" placeholder="Search technician" />
-          <datalist id="technicianList"></datalist>
+          <div class="search-select">
+            <div class="search-select-input-wrap">
+              <input id="technicianSearch" placeholder="Search technician" autocomplete="off" />
+              <button type="button" class="ss-clear" id="technicianClear" aria-label="Clear technician filter">&#x2715;</button>
+              <span class="ss-arrow">
+                <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                </svg>
+              </span>
+            </div>
+            <div id="technicianDropdown" class="ss-dropdown"></div>
+          </div>
         </div>
 
         <div class="filter-group">
           <label for="tenantSearch">Tenant</label>
-          <input id="tenantSearch" list="tenantList" placeholder="Search tenant" />
-          <datalist id="tenantList"></datalist>
+          <div class="search-select">
+            <div class="search-select-input-wrap">
+              <input id="tenantSearch" placeholder="Search tenant" autocomplete="off" />
+              <button type="button" class="ss-clear" id="tenantClear" aria-label="Clear tenant filter">&#x2715;</button>
+              <span class="ss-arrow">
+                <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                </svg>
+              </span>
+            </div>
+            <div id="tenantDropdown" class="ss-dropdown"></div>
+          </div>
         </div>
       </div>
     </section>
