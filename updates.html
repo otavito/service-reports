@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Software Updates Reports</title>
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --color-bg: #f4f6f9;
+      --color-surface: #ffffff;
+      --color-border: #d1d5db;
+      --color-border-focus: #3b82f6;
+      --color-text: #1f2937;
+      --color-text-muted: #6b7280;
+      --color-primary: #1d4ed8;
+      --color-accent: #eff6ff;
+      --radius: 8px;
+      --shadow: 0 1px 3px rgba(0, 0, 0, 0.10), 0 1px 2px rgba(0, 0, 0, 0.06);
+      --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--color-bg);
+      color: var(--color-text);
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+      box-shadow: var(--shadow);
+      padding: 0 clamp(1rem, 5vw, 3rem);
+    }
+
+    .header-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 0;
+    }
+
+    .header-inner img {
+      height: clamp(36px, 6vw, 52px);
+      width: auto;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+
+    .header-inner h1 {
+      font-size: clamp(1.1rem, 3vw, 1.6rem);
+      font-weight: 700;
+      color: var(--color-primary);
+      letter-spacing: -0.01em;
+    }
+
+    main {
+      max-width: 1320px;
+      margin: 2rem auto;
+      padding: 0 clamp(1rem, 4vw, 2rem);
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .intro {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: clamp(1.25rem, 4vw, 2rem);
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .eyebrow {
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+    }
+
+    .intro h2 {
+      font-size: clamp(1.4rem, 4vw, 2rem);
+      color: var(--color-text);
+      letter-spacing: -0.02em;
+    }
+
+    .intro p {
+      max-width: 60ch;
+      color: var(--color-text-muted);
+      font-size: 1.02rem;
+      line-height: 1.6;
+    }
+
+    .table-shell {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .table-scroll {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1080px;
+    }
+
+    th,
+    td {
+      padding: 15px 18px;
+      border-bottom: 1px solid #e5e7eb;
+      vertical-align: top;
+      text-align: left;
+      font-size: 15px;
+    }
+
+    th {
+      background: var(--color-accent);
+      color: var(--color-primary);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tbody tr:hover {
+      background: #f9fafb;
+    }
+
+    .stack-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .stack-item {
+      min-height: 22px;
+      line-height: 1.4;
+    }
+
+    .muted {
+      color: var(--color-text-muted);
+      font-style: italic;
+    }
+
+    .loading,
+    .error,
+    .empty {
+      padding: 20px;
+      color: var(--color-text-muted);
+    }
+
+    .count {
+      color: #4b5563;
+      font-size: 15px;
+      padding: 0 0.25rem;
+    }
+
+    @media (max-width: 768px) {
+      table {
+        min-width: 920px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <img src="logo.png" alt="Logo" />
+      <h1>Service Reports</h1>
+    </div>
+  </header>
+
+  <main>
+    <section class="intro">
+      <span class="eyebrow">Updates</span>
+      <h2>Reports with software updates</h2>
+      <p>
+        This page lists only reports that contain at least one software update,
+        ordered from the most recent to the oldest.
+      </p>
+    </section>
+
+    <div id="count" class="count"></div>
+
+    <section class="table-shell">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Report ID</th>
+              <th>Technician</th>
+              <th>Date</th>
+              <th>Program</th>
+              <th>From</th>
+              <th>To</th>
+              <th>Buildings / PCS</th>
+            </tr>
+          </thead>
+          <tbody id="updatesTableBody">
+            <tr>
+              <td colspan="7" class="loading">Loading reports...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const API_URL = "https://partsorder-api-hne6dzfudubdfvg0.westus3-01.azurewebsites.net/api/service-report-updates-list";
+
+    const tableBodyEl = document.getElementById("updatesTableBody");
+    const countEl = document.getElementById("count");
+
+    function escapeHtml(value) {
+      return String(value || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function renderStack(values) {
+      if (!values || !values.length) {
+        return '<span class="muted">—</span>';
+      }
+
+      return `
+        <div class="stack-list">
+          ${values.map(value => `
+            <div class="stack-item">${value ? escapeHtml(value) : '<span class="muted">—</span>'}</div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function renderTable(reports) {
+      if (!reports.length) {
+        tableBodyEl.innerHTML = `
+          <tr>
+            <td colspan="7" class="empty">No reports with software updates were found.</td>
+          </tr>
+        `;
+        countEl.textContent = "0 reports found.";
+        return;
+      }
+
+      countEl.textContent = `${reports.length} report(s) found.`;
+
+      tableBodyEl.innerHTML = reports.map(report => {
+        const updates = report.softwareUpdates || [];
+
+        return `
+          <tr>
+            <td>${escapeHtml(report.reportId)}</td>
+            <td>${escapeHtml(report.serviceTechnician)}</td>
+            <td>${escapeHtml(report.visitDate)}</td>
+            <td>${renderStack(updates.map(item => item.program))}</td>
+            <td>${renderStack(updates.map(item => item.from))}</td>
+            <td>${renderStack(updates.map(item => item.to))}</td>
+            <td>${renderStack(updates.map(item => item.buildingsPcs))}</td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    async function loadReports() {
+      try {
+        const response = await fetch(API_URL);
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data?.error || "Failed to load reports.");
+        }
+
+        renderTable(data.reports || []);
+      } catch (error) {
+        console.error(error);
+        tableBodyEl.innerHTML = `
+          <tr>
+            <td colspan="7" class="error">Failed to load reports.</td>
+          </tr>
+        `;
+        countEl.textContent = "";
+      }
+    }
+
+    loadReports();
+  </script>
+</body>
+</html>
