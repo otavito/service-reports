@@ -205,7 +205,8 @@
         <table>
           <thead>
             <tr>
-              <th>Report ID</th>
+              <th>Tenant</th>
+              <th>Site</th>
               <th>Technician</th>
               <th>Date</th>
               <th>Program</th>
@@ -271,7 +272,8 @@
 
         return `
           <tr>
-            <td>${escapeHtml(report.reportId)}</td>
+            <td>${escapeHtml(report.tenant)}</td>
+            <td>${escapeHtml(report.site)}</td>
             <td>${escapeHtml(report.serviceTechnician)}</td>
             <td>${escapeHtml(report.visitDate)}</td>
             <td>${renderStack(updates.map(item => item.program))}</td>
