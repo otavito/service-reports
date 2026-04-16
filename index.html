@@ -5,6 +5,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Service Report</title>
+    <script src="msal-browser.min.js"></script>
+    <script src="auth.js"></script>
     <style>
         *,
         *::before,
@@ -766,6 +768,12 @@
             const submitButton = this.querySelector('button[type="submit"]');
 
             try {
+                await window.serviceReportAuthReady;
+
+                if (!window.serviceReportAuth.isAuthorized()) {
+                    throw new Error('You must sign in before submitting a report.');
+                }
+
                 const payload = buildPayload(this);
                 console.log('Service Report Payload:', JSON.stringify(payload, null, 2));
 

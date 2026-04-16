@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Software Updates Reports</title>
+  <script src="msal-browser.min.js"></script>
+  <script src="auth.js"></script>
   <style>
     *,
     *::before,
@@ -105,6 +107,35 @@
       line-height: 1.6;
     }
 
+    .intro-actions {
+      margin-top: 0.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .page-link-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 0.7rem 1rem;
+      border: 1px solid var(--color-primary);
+      border-radius: var(--radius);
+      background: var(--color-primary);
+      color: #ffffff;
+      font-size: 0.95rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.15s, border-color 0.15s, transform 0.15s;
+    }
+
+    .page-link-button:hover {
+      background: #1e40af;
+      border-color: #1e40af;
+      transform: translateY(-1px);
+    }
+
     .table-shell {
       background: var(--color-surface);
       border: 1px solid var(--color-border);
@@ -196,6 +227,9 @@
         This page lists only reports that contain at least one software update,
         ordered from the most recent to the oldest.
       </p>
+      <div class="intro-actions">
+        <a class="page-link-button" href="reports.html">Back to reports</a>
+      </div>
     </section>
 
     <div id="count" class="count"></div>
@@ -306,7 +340,21 @@
       }
     }
 
-    loadReports();
+    window.serviceReportAuthReady
+      .then(() => {
+        if (window.serviceReportAuth.isAuthorized()) {
+          loadReports();
+        }
+      })
+      .catch((error) => {
+        console.error("Authentication initialization error:", error);
+        tableBodyEl.innerHTML = `
+          <tr>
+            <td colspan="8" class="error">Failed to initialize authentication.</td>
+          </tr>
+        `;
+        countEl.textContent = "";
+      });
   </script>
 </body>
 </html>

@@ -182,10 +182,20 @@ function renderCards(reports) {
   cardsEl.innerHTML = reports.map(report => `
     <div class="card" data-report-id="${escapeHtml(report.reportId)}">
       <h3>Report ${escapeHtml(report.reportId)}</h3>
-      <p><strong>Technician:</strong> ${escapeHtml(report.serviceTechnician)}</p>
-      <p><strong>Tenant:</strong> ${escapeHtml(report.tenant)}</p>
-      <p><strong>Site:</strong> ${escapeHtml(report.site)}</p>
-      <p><strong>Date:</strong> ${escapeHtml(report.visitDate)}</p>
+      <div class="card-highlight-grid">
+        <div class="card-highlight">
+          <div class="card-highlight-label">Technician</div>
+          <div class="card-highlight-value">${escapeHtml(report.serviceTechnician)}</div>
+        </div>
+        <div class="card-highlight">
+          <div class="card-highlight-label">Date</div>
+          <div class="card-highlight-value">${escapeHtml(report.visitDate)}</div>
+        </div>
+      </div>
+      <div class="card-details">
+        <p><strong>Tenant:</strong> ${escapeHtml(report.tenant)}</p>
+        <p><strong>Site:</strong> ${escapeHtml(report.site)}</p>
+      </div>
     </div>
   `).join("");
 
@@ -313,4 +323,13 @@ async function loadReports() {
   }
 }
 
-loadReports();
+window.serviceReportAuthReady
+  .then(() => {
+    if (window.serviceReportAuth.isAuthorized()) {
+      loadReports();
+    }
+  })
+  .catch((error) => {
+    console.error("Authentication initialization error:", error);
+    cardsEl.innerHTML = `<p class="empty">Failed to initialize authentication.</p>`;
+  });
