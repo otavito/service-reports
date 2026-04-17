@@ -1,14 +1,31 @@
 /**
- * buildPayload(form)
+ * buildPayload(form, attachments)
  * Reads all data from the service report form and returns a flat payload object
  * matching the expected API format.
  *
  * @param {HTMLFormElement} form
- * @returns {Object}
+ * @param {File[]} attachments
+ * @returns {Promise<Object>}
  */
-function buildPayload(form) {
+async function buildPayload(form, attachments) {
   const data = new FormData(form);
   const get = (name) => (data.get(name) || '').trim();
+
+  async function readFileAsDataUrl(file) {
+    return await new Promise(function (resolve, reject) {
+      const reader = new FileReader();
+
+      reader.onload = function () {
+        resolve(reader.result || '');
+      };
+
+      reader.onerror = function () {
+        reject(new Error(`Failed to read attachment: ${file.name}`));
+      };
+
+      reader.readAsDataURL(file);
+    });
+  }
 
   const payload = {
     serviceTechnician:  get('technician'),
@@ -18,6 +35,7 @@ function buildPayload(form) {
     visitDate:          get('visitDate'),
     visitPurpose:       get('visitPurpose'),
     results:            get('results'),
+    customerEmail:      get('customerEmail'),
   };
 
   // ── Software updates ──────────────────────────────────────────────────────
@@ -64,6 +82,15 @@ function buildPayload(form) {
   }
 
   payload.hardwareItems = hwParts.join('; ');
+
+  const attachmentFiles = Array.isArray(attachments) ? attachments : [];
+  const attachmentPaths = await Promise.all(attachmentFiles.map(readFileAsDataUrl));
+
+  payload.attachmentCount = attachmentFiles.length;
+  payload.attachmentNamesJson = JSON.stringify(attachmentFiles.map(function (file) {
+    return file.name;
+  }));
+  payload.attachmentPathsJson = JSON.stringify(attachmentPaths);
 
   return payload;
 }

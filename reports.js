@@ -41,6 +41,10 @@ const closeModalEl = document.getElementById("closeModal");
 
 let allReports = [];
 
+function escapeAttribute(value) {
+  return escapeHtml(value).replaceAll("`", "&#96;");
+}
+
 function escapeHtml(value) {
   return String(value || "")
     .replaceAll("&", "&amp;")
@@ -237,6 +241,28 @@ function renderSoftwareUpdates(updates) {
   `;
 }
 
+function renderAttachments(attachments) {
+  if (!attachments || !attachments.length) {
+    return `<p class="empty">No attachments informed.</p>`;
+  }
+
+  return `
+    <div class="info-grid">
+      ${attachments.map((attachment, index) => {
+        const fileName = attachment.name || `attachment-${index + 1}`;
+        const filePath = attachment.path || "";
+
+        return `
+          <div class="label">File ${index + 1}</div>
+          <div>
+            ${filePath ? `<a href="${escapeAttribute(filePath)}" download="${escapeAttribute(fileName)}" target="_blank" rel="noopener noreferrer">${escapeHtml(fileName)}</a>` : `<span class="empty">${escapeHtml(fileName)}</span>`}
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
 function openModal(report) {
   modalContentEl.innerHTML = `
     <h2>Service Report</h2>
@@ -248,6 +274,7 @@ function openModal(report) {
         <div class="label">Service Technician</div><div>${escapeHtml(report.serviceTechnician)}</div>
         <div class="label">Tenant</div><div>${escapeHtml(report.tenant)}</div>
         <div class="label">Site</div><div>${escapeHtml(report.site)}</div>
+        <div class="label">Customer Email</div><div>${escapeHtml(report.customerEmail || "")}</div>
         <div class="label">Date</div><div>${escapeHtml(report.visitDate)}</div>
         <div class="label">Affected Buildings</div><div>${escapeHtml(report.buildingsAffected)}</div>
       </div>
@@ -272,6 +299,11 @@ function openModal(report) {
         <div class="label">Items</div>
         <div>${report.hardwareItems ? escapeHtml(report.hardwareItems) : '<span class="empty">No hardware updates informed.</span>'}</div>
       </div>
+    </div>
+
+    <div class="section">
+      <h3>Attachments</h3>
+      ${renderAttachments(report.attachments)}
     </div>
   `;
 
