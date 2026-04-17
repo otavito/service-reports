@@ -38,6 +38,7 @@ const tenantClearEl = document.getElementById("tenantClear");
 const modalBackdropEl = document.getElementById("modalBackdrop");
 const modalContentEl = document.getElementById("modalContent");
 const closeModalEl = document.getElementById("closeModal");
+const DOWNLOAD_SAS_URL = "https://partsorder-api-hne6dzfudubdfvg0.westus3-01.azurewebsites.net/api/service-report-download-sas";
 
 let allReports = [];
 
@@ -255,12 +256,39 @@ function renderAttachments(attachments) {
         return `
           <div class="label">File ${index + 1}</div>
           <div>
-            ${filePath ? `<a href="${escapeAttribute(filePath)}" download="${escapeAttribute(fileName)}" target="_blank" rel="noopener noreferrer">${escapeHtml(fileName)}</a>` : `<span class="empty">${escapeHtml(fileName)}</span>`}
+            ${filePath ? `<button type="button" class="attachment-download-link" data-attachment-path="${escapeAttribute(filePath)}" data-attachment-name="${escapeAttribute(fileName)}">${escapeHtml(fileName)}</button>` : `<span class="empty">${escapeHtml(fileName)}</span>`}
           </div>
         `;
       }).join("")}
     </div>
   `;
+}
+
+async function requestAttachmentDownload(path, fileName) {
+  const response = await fetch(DOWNLOAD_SAS_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      blobPath: path,
+      fileName: fileName
+    })
+  });
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.message || result.error || "Failed to prepare attachment download.");
+  }
+
+  const downloadUrl = result.downloadUrl || result.url || result.sasUrl;
+
+  if (!downloadUrl) {
+    throw new Error("Download response is incomplete.");
+  }
+
+  window.open(downloadUrl, "_blank", "noopener,noreferrer");
 }
 
 function openModal(report) {
@@ -306,6 +334,17 @@ function openModal(report) {
       ${renderAttachments(report.attachments)}
     </div>
   `;
+
+  modalContentEl.querySelectorAll(".attachment-download-link").forEach((button) => {
+    button.addEventListener("click", async () => {
+      try {
+        await requestAttachmentDownload(button.dataset.attachmentPath || "", button.dataset.attachmentName || "");
+      } catch (error) {
+        console.error(error);
+        alert(error.message || "Failed to download attachment.");
+      }
+    });
+  });
 
   modalBackdropEl.style.display = "flex";
 }

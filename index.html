@@ -771,6 +771,7 @@
         const submitFeedback = document.getElementById('submitFeedback');
         const submitFeedbackMessage = document.getElementById('submitFeedbackMessage');
         const submitFeedbackOk = document.getElementById('submitFeedbackOk');
+        const UPLOAD_SAS_URL = 'https://partsorder-api-hne6dzfudubdfvg0.westus3-01.azurewebsites.net/api/service-report-upload-sas';
         let selectedAttachments = [];
 
         function formatFileSize(bytes) {
@@ -848,6 +849,50 @@
             attachmentsInput.value = '';
             renderAttachmentsList();
         });
+
+        async function uploadAttachment(file, reportId) {
+            const contentType = file.type || 'application/octet-stream';
+
+            const sasResponse = await fetch(UPLOAD_SAS_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    reportId: reportId,
+                    fileName: file.name,
+                    contentType: contentType
+                })
+            });
+
+            const sasResult = await sasResponse.json();
+
+            if (!sasResponse.ok) {
+                throw new Error(sasResult.message || sasResult.error || `Failed to prepare upload for ${file.name}.`);
+            }
+
+            if (!sasResult.uploadUrl || !sasResult.blobPath) {
+                throw new Error(`Upload response for ${file.name} is incomplete.`);
+            }
+
+            const uploadResponse = await fetch(sasResult.uploadUrl, {
+                method: 'PUT',
+                headers: {
+                    'x-ms-blob-type': 'BlockBlob',
+                    'Content-Type': contentType
+                },
+                body: file
+            });
+
+            if (!uploadResponse.ok) {
+                throw new Error(`Failed to upload ${file.name}.`);
+            }
+
+            return {
+                name: file.name,
+                path: sasResult.blobPath
+            };
+        }
 
         function showSubmitFeedback(message) {
             submitFeedbackMessage.textContent = message;
@@ -1115,13 +1160,22 @@
                     throw new Error('You must sign in before submitting a report.');
                 }
 
-                const payload = await buildPayload(this, selectedAttachments.map(function (attachment) {
-                    return attachment.file;
-                }));
-                console.log('Service Report Payload:', JSON.stringify(payload, null, 2));
-
                 submitButton.disabled = true;
                 submitButton.textContent = 'Submitting...';
+
+                const reportId = window.crypto && typeof window.crypto.randomUUID === 'function'
+                    ? window.crypto.randomUUID()
+                    : Date.now().toString();
+
+                const uploadedAttachments = await Promise.all(selectedAttachments.map(function (attachment) {
+                    return uploadAttachment(attachment.file, reportId);
+                }));
+
+                const payload = buildPayload(this, {
+                    reportId: reportId,
+                    attachments: uploadedAttachments
+                });
+                console.log('Service Report Payload:', JSON.stringify(payload, null, 2));
 
                 const FUNCTION_URL = 'https://partsorder-api-hne6dzfudubdfvg0.westus3-01.azurewebsites.net/api/service-report-post';
                 const response = await fetch(FUNCTION_URL, {

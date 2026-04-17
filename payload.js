@@ -1,33 +1,20 @@
 /**
- * buildPayload(form, attachments)
+ * buildPayload(form, options)
  * Reads all data from the service report form and returns a flat payload object
  * matching the expected API format.
  *
  * @param {HTMLFormElement} form
- * @param {File[]} attachments
- * @returns {Promise<Object>}
+ * @param {{ reportId?: string, attachments?: Array<{name: string, path: string}> }} options
+ * @returns {Object}
  */
-async function buildPayload(form, attachments) {
+function buildPayload(form, options) {
   const data = new FormData(form);
   const get = (name) => (data.get(name) || '').trim();
-
-  async function readFileAsDataUrl(file) {
-    return await new Promise(function (resolve, reject) {
-      const reader = new FileReader();
-
-      reader.onload = function () {
-        resolve(reader.result || '');
-      };
-
-      reader.onerror = function () {
-        reject(new Error(`Failed to read attachment: ${file.name}`));
-      };
-
-      reader.readAsDataURL(file);
-    });
-  }
+  const payloadOptions = options || {};
+  const attachments = Array.isArray(payloadOptions.attachments) ? payloadOptions.attachments : [];
 
   const payload = {
+    reportId:            payloadOptions.reportId || '',
     serviceTechnician:  get('technician'),
     tenant:             get('tenant'),
     site:               get('site'),
@@ -83,14 +70,13 @@ async function buildPayload(form, attachments) {
 
   payload.hardwareItems = hwParts.join('; ');
 
-  const attachmentFiles = Array.isArray(attachments) ? attachments : [];
-  const attachmentPaths = await Promise.all(attachmentFiles.map(readFileAsDataUrl));
-
-  payload.attachmentCount = attachmentFiles.length;
-  payload.attachmentNamesJson = JSON.stringify(attachmentFiles.map(function (file) {
-    return file.name;
+  payload.attachmentCount = attachments.length;
+  payload.attachmentNamesJson = JSON.stringify(attachments.map(function (attachment) {
+    return attachment.name || '';
   }));
-  payload.attachmentPathsJson = JSON.stringify(attachmentPaths);
+  payload.attachmentPathsJson = JSON.stringify(attachments.map(function (attachment) {
+    return attachment.path || '';
+  }));
 
   return payload;
 }
