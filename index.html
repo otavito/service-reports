@@ -761,7 +761,8 @@
                     <div class="attachment-upload">
                         <label for="attachmentsInput">Attachments</label>
                         <input type="file" id="attachmentsInput" class="attachment-upload-input" multiple />
-                        <p class="attachment-help">Add one or more files. You can remove any selected file before submitting.</p>
+                        <p class="attachment-help">Add one or more files. You can remove any selected file before
+                            submitting.</p>
                         <div id="attachmentsList" class="attachment-list">
                             <p class="attachment-empty">No files selected.</p>
                         </div>
@@ -949,6 +950,11 @@
         function validateRequiredFields() {
             tenantInput.setCustomValidity(tenantValue.value ? '' : 'Please select a tenant.');
             siteInput.setCustomValidity(siteValue.value ? '' : 'Please select a site.');
+
+            visitFromInput.setCustomValidity(
+                visitFromInput.value ? '' : 'Please select a valid date. Tip: use the calendar.'
+            );
+
             visitToInput.setCustomValidity('');
 
             if (visitFromInput.value && visitToInput.value && visitToInput.value < visitFromInput.value) {
@@ -961,6 +967,7 @@
             const formIsValid = serviceForm.reportValidity();
             const hasTenant = Boolean(tenantValue.value);
             const hasSite = Boolean(siteValue.value);
+            const hasVisitFrom = Boolean(visitFromInput.value);
 
             if (!formIsValid) {
                 if (!technicianInput.value) {
@@ -969,7 +976,7 @@
                     tenantInput.focus();
                 } else if (!hasSite) {
                     siteInput.focus();
-                } else if (!visitFromInput.value) {
+                } else if (!hasVisitFrom) {
                     visitFromInput.focus();
                 } else if (visitToInput.validity.customError) {
                     visitToInput.focus();
@@ -980,7 +987,7 @@
                 }
             }
 
-            return formIsValid && hasTenant && hasSite;
+            return formIsValid && hasTenant && hasSite && hasVisitFrom;
         }
 
         tenantInput.addEventListener('input', function () {

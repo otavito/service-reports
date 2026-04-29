@@ -331,8 +331,8 @@ function openModal(report) {
     <div class="section">
       <h3>Visit Details</h3>
       <div class="info-grid">
-        <div class="label">Visit Purpose</div><div>${escapeHtml(report.visitPurpose)}</div>
-        <div class="label">Results</div><div>${escapeHtml(report.results)}</div>
+          <div class="label">Visit Purpose</div><div class="preserve-lines">${escapeHtml(report.visitPurpose)}</div>
+          <div class="label">Results</div><div class="preserve-lines">${escapeHtml(report.results)}</div>
       </div>
     </div>
 
