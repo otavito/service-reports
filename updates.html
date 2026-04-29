@@ -242,7 +242,7 @@
               <th>Tenant</th>
               <th>Site</th>
               <th>Technician</th>
-              <th>Date</th>
+              <th>Visit date</th>
               <th>Program</th>
               <th>From</th>
               <th>To</th>
@@ -251,7 +251,7 @@
           </thead>
           <tbody id="updatesTableBody">
             <tr>
-              <td colspan="7" class="loading">Loading reports...</td>
+              <td colspan="8" class="loading">Loading reports...</td>
             </tr>
           </tbody>
         </table>
@@ -288,11 +288,16 @@
       `;
     }
 
+    function getVisitDate(report) {
+      const from = (report.visitFrom || "").trim();
+      return from || report.visitDate || "";
+    }
+
     function renderTable(reports) {
       if (!reports.length) {
         tableBodyEl.innerHTML = `
           <tr>
-            <td colspan="7" class="empty">No reports with software updates were found.</td>
+            <td colspan="8" class="empty">No reports with software updates were found.</td>
           </tr>
         `;
         countEl.textContent = "0 reports found.";
@@ -309,7 +314,7 @@
             <td>${escapeHtml(report.tenant)}</td>
             <td>${escapeHtml(report.site)}</td>
             <td>${escapeHtml(report.serviceTechnician)}</td>
-            <td>${escapeHtml(report.visitDate)}</td>
+            <td>${escapeHtml(getVisitDate(report))}</td>
             <td>${renderStack(updates.map(item => item.program))}</td>
             <td>${renderStack(updates.map(item => item.from))}</td>
             <td>${renderStack(updates.map(item => item.to))}</td>
@@ -333,7 +338,7 @@
         console.error(error);
         tableBodyEl.innerHTML = `
           <tr>
-            <td colspan="7" class="error">Failed to load reports.</td>
+            <td colspan="8" class="error">Failed to load reports.</td>
           </tr>
         `;
         countEl.textContent = "";

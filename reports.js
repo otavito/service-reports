@@ -55,6 +55,25 @@ function escapeHtml(value) {
     .replaceAll("'", "&#39;");
 }
 
+function getVisitDate(report) {
+  const from = (report.visitFrom || "").trim();
+  return from || report.visitDate || "";
+}
+
+function getVisitFrom(report) {
+  return (report.visitFrom || "").trim() || report.visitDate || "";
+}
+
+function getVisitTo(report) {
+  const to = (report.visitTo || "").trim();
+  if (to) {
+    return to;
+  }
+
+  // Keep legacy reports readable when only visitDate exists.
+  return getVisitFrom(report);
+}
+
 function filterReports() {
   const technician = technicianSearchEl.value.trim().toLowerCase();
   const tenant = tenantSearchEl.value.trim().toLowerCase();
@@ -193,8 +212,8 @@ function renderCards(reports) {
           <div class="card-highlight-value">${escapeHtml(report.serviceTechnician)}</div>
         </div>
         <div class="card-highlight">
-          <div class="card-highlight-label">Date</div>
-          <div class="card-highlight-value">${escapeHtml(report.visitDate)}</div>
+          <div class="card-highlight-label">Visit date</div>
+          <div class="card-highlight-value">${escapeHtml(getVisitDate(report))}</div>
         </div>
       </div>
       <div class="card-details">
@@ -303,7 +322,8 @@ function openModal(report) {
         <div class="label">Tenant</div><div>${escapeHtml(report.tenant)}</div>
         <div class="label">Site</div><div>${escapeHtml(report.site)}</div>
         <div class="label">Customer Email</div><div>${escapeHtml(report.customerEmail || "")}</div>
-        <div class="label">Date</div><div>${escapeHtml(report.visitDate)}</div>
+        <div class="label">Visit from</div><div>${escapeHtml(getVisitFrom(report))}</div>
+        <div class="label">Visit to</div><div>${escapeHtml(getVisitTo(report))}</div>
         <div class="label">Affected Buildings</div><div>${escapeHtml(report.buildingsAffected)}</div>
       </div>
     </div>
