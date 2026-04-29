@@ -124,6 +124,13 @@
             grid-column: 1 / -1;
         }
 
+        .visit-date-grid {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1.25rem 1.5rem;
+        }
+
         label {
             font-size: .8rem;
             font-weight: 600;
@@ -571,6 +578,10 @@
 
         @media (max-width: 500px) {
 
+            .visit-date-grid {
+                grid-template-columns: 1fr;
+            }
+
             .dyn-header.hw-cols,
             .hw-row {
                 grid-template-columns: 1fr 90px 36px;
@@ -663,15 +674,19 @@
                             placeholder="Processing, House 1, …" />
                     </div>
 
-                    <!-- Visit period -->
-                    <div class="field">
-                        <label for="visitFrom">From</label>
-                        <input type="date" id="visitFrom" name="visitFrom" required />
-                    </div>
+                    <!-- ── Visit Date ─────────────────────────── -->
+                    <div class="section-divider"><span>Visit Date</span></div>
 
-                    <div class="field">
-                        <label for="visitTo">To</label>
-                        <input type="date" id="visitTo" name="visitTo" />
+                    <div class="visit-date-grid">
+                        <div class="field">
+                            <label for="visitFrom">From</label>
+                            <input type="date" id="visitFrom" name="visitFrom" required />
+                        </div>
+
+                        <div class="field">
+                            <label for="visitTo">To</label>
+                            <input type="date" id="visitTo" name="visitTo" />
+                        </div>
                     </div>
 
                     <!-- ── Service Details ──────────────────────── -->
