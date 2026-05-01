@@ -10,8 +10,20 @@
 function buildPayload(form, options) {
   const data = new FormData(form);
   const get = (name) => (data.get(name) || '').trim();
+  const customerEmails = [];
   const payloadOptions = options || {};
   const attachments = Array.isArray(payloadOptions.attachments) ? payloadOptions.attachments : [];
+
+  for (const [name, value] of data.entries()) {
+    if (!/^customer_email_\d+$/.test(name)) {
+      continue;
+    }
+
+    const email = String(value || '').trim();
+    if (email) {
+      customerEmails.push(email);
+    }
+  }
 
   const payload = {
     reportId:            payloadOptions.reportId || '',
@@ -23,7 +35,8 @@ function buildPayload(form, options) {
     visitTo:            get('visitTo'),
     visitPurpose:       get('visitPurpose'),
     results:            get('results'),
-    customerEmail:      get('customerEmail'),
+    customerEmail:      customerEmails[0] || '',
+    customerEmailsJson: JSON.stringify(customerEmails),
   };
 
   // ── Software updates ──────────────────────────────────────────────────────

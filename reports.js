@@ -74,6 +74,26 @@ function getVisitTo(report) {
   return getVisitFrom(report);
 }
 
+function getCustomerEmails(report) {
+  if (report.customerEmailsJson) {
+    try {
+      const parsed = JSON.parse(report.customerEmailsJson);
+      if (Array.isArray(parsed)) {
+        return parsed.filter(Boolean);
+      }
+    } catch {
+      // Fall back to the legacy single-email field.
+    }
+  }
+
+  return report.customerEmail ? [report.customerEmail] : [];
+}
+
+function renderCustomerEmails(report) {
+  const emails = getCustomerEmails(report);
+  return emails.map((email) => escapeHtml(email)).join("<br>");
+}
+
 function filterReports() {
   const technician = technicianSearchEl.value.trim().toLowerCase();
   const tenant = tenantSearchEl.value.trim().toLowerCase();
@@ -321,7 +341,7 @@ function openModal(report) {
         <div class="label">Service Technician</div><div>${escapeHtml(report.serviceTechnician)}</div>
         <div class="label">Tenant</div><div>${escapeHtml(report.tenant)}</div>
         <div class="label">Site</div><div>${escapeHtml(report.site)}</div>
-        <div class="label">Customer Email</div><div>${escapeHtml(report.customerEmail || "")}</div>
+        <div class="label">Customer Email</div><div>${renderCustomerEmails(report)}</div>
         <div class="label">Visit from</div><div>${escapeHtml(getVisitFrom(report))}</div>
         <div class="label">Visit to</div><div>${escapeHtml(getVisitTo(report))}</div>
         <div class="label">Affected Buildings</div><div>${escapeHtml(report.buildingsAffected)}</div>

@@ -336,8 +336,16 @@
             align-items: center;
         }
 
+            .customer-email-row {
+                display: grid;
+                grid-template-columns: 1fr 40px;
+                gap: .5rem;
+                align-items: center;
+            }
+
         .sw-row input,
-        .hw-row input {
+            .hw-row input,
+            .customer-email-row input {
             margin: 0;
         }
 
@@ -752,10 +760,17 @@
                         </button>
                     </div>
 
-                    <div class="field full-width">
-                        <label for="customerEmail">Customer Email</label>
-                        <input type="email" id="customerEmail" name="customerEmail"
-                            placeholder="Send a copy of this report to the customer" />
+                    <div class="section-divider"><span>Customer Emails</span></div>
+
+                    <div class="dyn-wrapper">
+                        <div id="customerEmailList"></div>
+                        <button type="button" class="btn-add-quote" id="addCustomerEmail">
+                            <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
+                                <path
+                                    d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+                            </svg>
+                            Add customer email
+                        </button>
                     </div>
 
                     <div class="attachment-upload">
@@ -1196,6 +1211,27 @@
         document.getElementById('addHardware').addEventListener('click', addHardwareRow);
         addHardwareRow();
 
+        // ── Customer email rows ──────────────────────────────────────────────────
+        let customerEmailIndex = 0;
+        const customerEmailList = document.getElementById('customerEmailList');
+
+        function addCustomerEmailRow() {
+            const idx = customerEmailIndex++;
+            const row = document.createElement('div');
+            row.className = 'customer-email-row';
+
+            const email = document.createElement('input');
+            email.type = 'email';
+            email.name = `customer_email_${idx}`;
+            email.placeholder = 'customer@example.com';
+
+            row.append(email, makeRemoveBtn(row));
+            customerEmailList.appendChild(row);
+        }
+
+        document.getElementById('addCustomerEmail').addEventListener('click', addCustomerEmailRow);
+        addCustomerEmailRow();
+
         function resetDynamicRows(container, addRow) {
             container.innerHTML = '';
             addRow();
@@ -1216,6 +1252,7 @@
 
             resetDynamicRows(softwareList, addSoftwareRow);
             resetDynamicRows(hardwareList, addHardwareRow);
+            resetDynamicRows(customerEmailList, addCustomerEmailRow);
         }
 
         // ── Form submit ───────────────────────────────────────────────────────────
