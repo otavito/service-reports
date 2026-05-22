@@ -8,25 +8,10 @@ const TECHNICIAN_OPTIONS = [
   "Kelly Ulrich",
   "Keith Lafave",
   "Matt Adamski",
-  "Otavio Ladoruski"
+  "Todd Aaker"
 ];
 
-const TENANT_OPTIONS = [
-  "ROSE ACRES",
-  "SUNRISE",
-  "GEMPERLE",
-  "CAL-MAINE",
-  "OPAL FOODS",
-  "DAYBREAK",
-  "TRILLIUM",
-  "CLR EGGS",
-  "NELSON",
-  "REMBRANDT",
-  "GIROUX",
-  "FORSMAN FARMS",
-  "WILLAMETTE",
-  "MICHAEL FOOD"
-];
+let TENANT_OPTIONS = [];
 
 const cardsEl = document.getElementById("cards");
 const technicianSearchEl = document.getElementById("technicianSearch");
@@ -115,7 +100,8 @@ function filterReports() {
 
 function createSearchSelect({ inputEl, dropdownEl, clearBtnEl, options, onInput }) {
   let highlightedIndex = -1;
-  let visibleOptions = [...options];
+  let allOptions = [...options];
+  let visibleOptions = [...allOptions];
 
   function updateClearButton() {
     clearBtnEl.style.display = inputEl.value.trim() ? "flex" : "none";
@@ -154,11 +140,13 @@ function createSearchSelect({ inputEl, dropdownEl, clearBtnEl, options, onInput 
     });
   }
 
-  function refreshOptions() {
+  function refreshOptions(shouldOpen = true) {
     const term = inputEl.value.trim().toLowerCase();
-    visibleOptions = options.filter((option) => option.toLowerCase().includes(term));
+    visibleOptions = allOptions.filter((option) => option.toLowerCase().includes(term));
     renderOptions(visibleOptions);
-    dropdownEl.classList.add("open");
+    if (shouldOpen) {
+      dropdownEl.classList.add("open");
+    }
   }
 
   inputEl.addEventListener("focus", refreshOptions);
@@ -215,6 +203,13 @@ function createSearchSelect({ inputEl, dropdownEl, clearBtnEl, options, onInput 
   });
 
   updateClearButton();
+
+  return {
+    setOptions(newOptions) {
+      allOptions = Array.isArray(newOptions) ? [...newOptions] : [];
+      refreshOptions(false);
+    }
+  };
 }
 
 function renderCards(reports) {
@@ -407,13 +402,31 @@ createSearchSelect({
   onInput: filterReports
 });
 
-createSearchSelect({
+const tenantSelectCtrl = createSearchSelect({
   inputEl: tenantSearchEl,
   dropdownEl: tenantDropdownEl,
   clearBtnEl: tenantClearEl,
   options: TENANT_OPTIONS,
   onInput: filterReports
 });
+
+async function loadTenantOptions() {
+  try {
+    const response = await fetch("tenants.json");
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error("Failed to load tenants.json");
+    }
+
+    TENANT_OPTIONS = Object.keys(data || {});
+    tenantSelectCtrl.setOptions(TENANT_OPTIONS);
+  } catch (error) {
+    console.error("Failed to load tenant options:", error);
+  }
+}
+
+loadTenantOptions();
 
 async function loadReports() {
   cardsEl.innerHTML = `<p class="empty">Loading reports...</p>`;
