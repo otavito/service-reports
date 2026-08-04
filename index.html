@@ -5,6 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Service Report</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <script src="msal-browser.min.js"></script>
     <script src="auth.js"></script>
     <style>
@@ -17,19 +18,20 @@
         }
 
         :root {
-            --color-bg: #f4f6f9;
-            --color-surface: #ffffff;
-            --color-border: #d1d5db;
-            --color-border-focus: #3b82f6;
-            --color-text: #1f2937;
-            --color-text-muted: #6b7280;
-            --color-primary: #1d4ed8;
-            --color-primary-hover: #1e40af;
-            --color-accent: #eff6ff;
+            --color-bg: #0a1222;
+            --color-surface: #111c30;
+            --color-field: #16253d;
+            --color-border: #2d3f5c;
+            --color-border-focus: #60a5fa;
+            --color-text: #e7edf8;
+            --color-text-muted: #a8b5cb;
+            --color-primary: #4c9fff;
+            --color-primary-hover: #2c7fe0;
+            --color-accent: #1b2f4f;
             --color-remove: #ef4444;
             --radius: 8px;
-            --shadow: 0 1px 3px rgba(0, 0, 0, .10), 0 1px 2px rgba(0, 0, 0, .06);
-            --shadow-md: 0 4px 6px rgba(0, 0, 0, .07), 0 2px 4px rgba(0, 0, 0, .06);
+            --shadow: 0 16px 32px rgba(4, 10, 22, .28);
+            --shadow-md: 0 20px 40px rgba(4, 10, 22, .4);
         }
 
         body {
@@ -149,7 +151,7 @@
             font-size: .95rem;
             font-family: inherit;
             color: var(--color-text);
-            background: var(--color-surface);
+            background: var(--color-field);
             border: 1px solid var(--color-border);
             border-radius: var(--radius);
             outline: none;
@@ -168,9 +170,15 @@
         input[type="text"]:disabled,
         input[type="email"]:disabled,
         select:disabled {
-            background: #f9fafb;
+            background: #1b2c46;
             color: var(--color-text-muted);
             cursor: not-allowed;
+        }
+
+        input[readonly] {
+            background: #1b2c46;
+            color: var(--color-text);
+            cursor: default;
         }
 
         textarea {
@@ -363,8 +371,8 @@
         }
 
         .btn-remove {
-            background: #fee2e2;
-            color: var(--color-remove);
+            background: #3e1a24;
+            color: #fda4af;
         }
 
         .btn-remove:hover {
@@ -389,7 +397,7 @@
         }
 
         .btn-add-quote:hover {
-            background: #dbeafe;
+            background: #28416a;
         }
 
         .attachment-upload {
@@ -405,7 +413,7 @@
             padding: .75rem;
             border: 1px dashed var(--color-border-focus);
             border-radius: var(--radius);
-            background: #f8fbff;
+            background: #14233b;
         }
 
         .attachment-help {
@@ -457,10 +465,10 @@
 
         .attachment-remove {
             padding: .45rem .8rem;
-            border: 1px solid #fecaca;
+            border: 1px solid #7f1d1d;
             border-radius: var(--radius);
-            background: #fee2e2;
-            color: #b91c1c;
+            background: #3e1a24;
+            color: #fecaca;
             font: inherit;
             font-size: .85rem;
             font-weight: 600;
@@ -469,7 +477,7 @@
         }
 
         .attachment-remove:hover {
-            background: #fecaca;
+            background: #7f1d1d;
         }
 
         /* ── Submit button ───────────────────────────────── */
@@ -517,7 +525,7 @@
             align-items: center;
             justify-content: center;
             padding: 1.5rem;
-            background: rgba(15, 23, 42, 0.18);
+            background: rgba(6, 10, 20, 0.72);
         }
 
         .submit-feedback[hidden] {
@@ -625,17 +633,8 @@
                     <!-- Service Technician -->
                     <div class="field">
                         <label for="technician">Service Technician</label>
-                        <select id="technician" name="technician" required>
-                            <option value="" disabled selected>Select technician…</option>
-                            <option>Bruno Manoel</option>
-                            <option>Daniel Genson</option>
-                            <option>Dennis Bruns</option>
-                            <option>John Tomes</option>
-                            <option>Kelly Ulrich</option>
-                            <option>Keith Lafave</option>
-                            <option>Matt Adamski</option>
-                            <option>Todd Aaker</option>
-                        </select>
+                        <input type="text" id="technician" name="technician" required readonly
+                            placeholder="Sign in to auto-fill technician" />
                     </div>
 
                     <!-- Tenant -->
@@ -963,6 +962,10 @@
         });
 
         function validateRequiredFields() {
+            technicianInput.setCustomValidity(
+                technicianInput.value.trim() ? '' : 'Unable to resolve authenticated technician. Please sign in again.'
+            );
+
             tenantInput.setCustomValidity(tenantValue.value ? '' : 'Please select a tenant.');
             siteInput.setCustomValidity(siteValue.value ? '' : 'Please select a site.');
 
@@ -1253,23 +1256,53 @@
             resetDynamicRows(softwareList, addSoftwareRow);
             resetDynamicRows(hardwareList, addHardwareRow);
             resetDynamicRows(customerEmailList, addCustomerEmailRow);
+
+            syncTechnicianFromSession();
         }
+
+        function getAuthenticatedTechnicianName() {
+            const account = window.serviceReportAuth && typeof window.serviceReportAuth.getCurrentAccount === 'function'
+                ? window.serviceReportAuth.getCurrentAccount()
+                : null;
+
+            const displayName = (account && (account.name || account.username)) || '';
+            return String(displayName || '').trim();
+        }
+
+        function syncTechnicianFromSession() {
+            const authenticatedName = getAuthenticatedTechnicianName();
+            technicianInput.value = authenticatedName;
+            technicianInput.readOnly = true;
+            technicianInput.setCustomValidity(
+                authenticatedName ? '' : 'Unable to resolve authenticated technician. Please sign in again.'
+            );
+        }
+
+        window.serviceReportAuthReady
+            .then(function () {
+                syncTechnicianFromSession();
+            })
+            .catch(function () {
+                syncTechnicianFromSession();
+            });
 
         // ── Form submit ───────────────────────────────────────────────────────────
         serviceForm.addEventListener('submit', async function (e) {
             e.preventDefault();
-
-            if (!validateRequiredFields()) {
-                return;
-            }
 
             const submitButton = this.querySelector('button[type="submit"]');
 
             try {
                 await window.serviceReportAuthReady;
 
+                syncTechnicianFromSession();
+
                 if (!window.serviceReportAuth.isAuthorized()) {
                     throw new Error('You must sign in before submitting a report.');
+                }
+
+                if (!validateRequiredFields()) {
+                    return;
                 }
 
                 submitButton.disabled = true;

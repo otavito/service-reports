@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Software Updates Reports</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <script src="msal-browser.min.js"></script>
   <script src="auth.js"></script>
   <style>
@@ -16,17 +17,18 @@
     }
 
     :root {
-      --color-bg: #f4f6f9;
-      --color-surface: #ffffff;
-      --color-border: #d1d5db;
-      --color-border-focus: #3b82f6;
-      --color-text: #1f2937;
-      --color-text-muted: #6b7280;
-      --color-primary: #1d4ed8;
-      --color-accent: #eff6ff;
+      --color-bg: #0a1222;
+      --color-surface: #111c30;
+      --color-border: #2d3f5c;
+      --color-border-focus: #60a5fa;
+      --color-text: #e7edf8;
+      --color-text-muted: #a8b5cb;
+      --color-primary: #4c9fff;
+      --color-primary-hover: #2c7fe0;
+      --color-accent: #1b2f4f;
       --radius: 8px;
-      --shadow: 0 1px 3px rgba(0, 0, 0, 0.10), 0 1px 2px rgba(0, 0, 0, 0.06);
-      --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06);
+      --shadow: 0 16px 32px rgba(4, 10, 22, 0.28);
+      --shadow-md: 0 20px 40px rgba(4, 10, 22, 0.40);
     }
 
     body {
@@ -131,8 +133,8 @@
     }
 
     .page-link-button:hover {
-      background: #1e40af;
-      border-color: #1e40af;
+      background: var(--color-primary-hover);
+      border-color: var(--color-primary-hover);
       transform: translateY(-1px);
     }
 
@@ -157,7 +159,7 @@
     th,
     td {
       padding: 15px 18px;
-      border-bottom: 1px solid #e5e7eb;
+      border-bottom: 1px solid var(--color-border);
       vertical-align: top;
       text-align: left;
       font-size: 15px;
@@ -172,7 +174,7 @@
     }
 
     tbody tr:hover {
-      background: #f9fafb;
+      background: #14233a;
     }
 
     .stack-list {
@@ -199,7 +201,7 @@
     }
 
     .count {
-      color: #4b5563;
+      color: var(--color-text-muted);
       font-size: 15px;
       padding: 0 0.25rem;
     }

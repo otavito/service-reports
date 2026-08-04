@@ -1,15 +1,6 @@
 const API_URL = "https://partsorder-api-hne6dzfudubdfvg0.westus3-01.azurewebsites.net/api/service-report-list";
 
-const TECHNICIAN_OPTIONS = [
-  "Bruno Manoel",
-  "Daniel Genson",
-  "Dennis Bruns",
-  "John Thomes",
-  "Kelly Ulrich",
-  "Keith Lafave",
-  "Matt Adamski",
-  "Todd Aaker"
-];
+let TECHNICIAN_OPTIONS = [];
 
 let TENANT_OPTIONS = [];
 
@@ -394,7 +385,7 @@ modalBackdropEl.addEventListener("click", (event) => {
   }
 });
 
-createSearchSelect({
+const technicianSelectCtrl = createSearchSelect({
   inputEl: technicianSearchEl,
   dropdownEl: technicianDropdownEl,
   clearBtnEl: technicianClearEl,
@@ -440,6 +431,12 @@ async function loadReports() {
     }
 
     allReports = data.reports || [];
+    TECHNICIAN_OPTIONS = Array.from(new Set(
+      allReports
+        .map((report) => String(report.serviceTechnician || "").trim())
+        .filter(Boolean)
+    )).sort((a, b) => a.localeCompare(b));
+    technicianSelectCtrl.setOptions(TECHNICIAN_OPTIONS);
     filterReports();
   } catch (error) {
     console.error(error);

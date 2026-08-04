@@ -127,7 +127,7 @@
         align-items: center;
         justify-content: center;
         padding: 1.5rem;
-        background: rgba(244, 246, 249, 0.96);
+        background: rgba(6, 10, 20, 0.82);
         backdrop-filter: blur(3px);
       }
 
@@ -171,13 +171,13 @@
       }
 
       .auth-status.info {
-        background: #eff6ff;
-        color: #1d4ed8;
+        background: #162a47;
+        color: #93c5fd;
       }
 
       .auth-status.error {
-        background: #fee2e2;
-        color: #b91c1c;
+        background: #3e1a24;
+        color: #fecaca;
       }
 
       .auth-overlay-actions {
